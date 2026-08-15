@@ -4,6 +4,8 @@ A "last done / days since" card for recurring household jobs. Tap it to stamp th
 done today; the border and glow shift from green through amber to red as the task comes
 due.
 
+![Three maintenance tiles: Filter Clean at 74 days ago with an amber border, Water Change at 2 days ago and Plants Watered at 5 days ago both with green borders](screenshot.png)
+
 ## How it works
 
 Three pieces per task:
