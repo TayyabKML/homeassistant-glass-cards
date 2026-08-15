@@ -1,0 +1,188 @@
+# The assembled 16-port switch card.
+#
+# One stack-in-card glass shell holds a header and sixteen port_row instances.
+# The rows are transparent and borderless — the shell supplies the glass, and
+# hairlines separate the rows. See theme/ for why only the outer card gets the
+# backdrop-filter.
+#
+# REPLACE BEFORE USE:
+#   <switch> — your switch's entity prefix. Appears in the header's up-count
+#              loop and in all sixteen instantiations below.
+#
+# Requires the `port_row` Streamline template (see port-row.yaml).
+#
+# Expects three sensors per port, numbered 1..16:
+#   sensor.<switch>_port_<n>_status        state "1" when the link is up
+#   sensor.<switch>_port_<n>_speed         link speed in Mbps
+#   sensor.<switch>_port_<n>_description   friendly label for what's plugged in
+
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  style: |
+    ha-card {
+      background: rgba(255,255,255,0.04) !important;
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 22px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+      overflow: hidden !important;
+    }
+cards:
+  # --- Header, with a live count of how many ports are up --------------------
+  - type: markdown
+    text_only: true
+    content: >-
+      {%- set ns = namespace(up=0) -%}
+
+      {%- for i in range(1, 17) -%}
+
+      {%- if is_state('sensor.<switch>_port_' ~ i ~ '_status', '1')
+      -%}{%- set ns.up = ns.up + 1 -%}{%- endif -%}
+
+      {%- endfor -%}
+
+      ### NETWORK SWITCH <span class="cnt">{{ ns.up }}/16</span>
+    card_mod:
+      style: |
+        ha-card {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 16px 18px 12px 18px !important;
+        }
+        ha-card h3 {
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          color: rgba(255,255,255,0.45) !important;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          margin: 0 !important;
+        }
+        ha-card h3 .cnt {
+          float: right;
+          font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: rgba(0,221,184,0.7);
+        }
+
+  # --- Ports 1–16 ------------------------------------------------------------
+  # Tedious, but explicit. Lovelace has no loop construct in a view.
+  #
+  # port_number is quoted so the leading zero survives — it is a label, not a
+  # number, and the entity IDs use the unpadded index.
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '01'
+      description_entity: sensor.<switch>_port_1_description
+      speed_entity: sensor.<switch>_port_1_speed
+      status_entity: sensor.<switch>_port_1_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '02'
+      description_entity: sensor.<switch>_port_2_description
+      speed_entity: sensor.<switch>_port_2_speed
+      status_entity: sensor.<switch>_port_2_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '03'
+      description_entity: sensor.<switch>_port_3_description
+      speed_entity: sensor.<switch>_port_3_speed
+      status_entity: sensor.<switch>_port_3_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '04'
+      description_entity: sensor.<switch>_port_4_description
+      speed_entity: sensor.<switch>_port_4_speed
+      status_entity: sensor.<switch>_port_4_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '05'
+      description_entity: sensor.<switch>_port_5_description
+      speed_entity: sensor.<switch>_port_5_speed
+      status_entity: sensor.<switch>_port_5_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '06'
+      description_entity: sensor.<switch>_port_6_description
+      speed_entity: sensor.<switch>_port_6_speed
+      status_entity: sensor.<switch>_port_6_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '07'
+      description_entity: sensor.<switch>_port_7_description
+      speed_entity: sensor.<switch>_port_7_speed
+      status_entity: sensor.<switch>_port_7_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '08'
+      description_entity: sensor.<switch>_port_8_description
+      speed_entity: sensor.<switch>_port_8_speed
+      status_entity: sensor.<switch>_port_8_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '09'
+      description_entity: sensor.<switch>_port_9_description
+      speed_entity: sensor.<switch>_port_9_speed
+      status_entity: sensor.<switch>_port_9_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '10'
+      description_entity: sensor.<switch>_port_10_description
+      speed_entity: sensor.<switch>_port_10_speed
+      status_entity: sensor.<switch>_port_10_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '11'
+      description_entity: sensor.<switch>_port_11_description
+      speed_entity: sensor.<switch>_port_11_speed
+      status_entity: sensor.<switch>_port_11_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '12'
+      description_entity: sensor.<switch>_port_12_description
+      speed_entity: sensor.<switch>_port_12_speed
+      status_entity: sensor.<switch>_port_12_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '13'
+      description_entity: sensor.<switch>_port_13_description
+      speed_entity: sensor.<switch>_port_13_speed
+      status_entity: sensor.<switch>_port_13_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '14'
+      description_entity: sensor.<switch>_port_14_description
+      speed_entity: sensor.<switch>_port_14_speed
+      status_entity: sensor.<switch>_port_14_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '15'
+      description_entity: sensor.<switch>_port_15_description
+      speed_entity: sensor.<switch>_port_15_speed
+      status_entity: sensor.<switch>_port_15_status
+  - type: custom:streamline-card
+    template: port_row
+    variables:
+      port_number: '16'
+      description_entity: sensor.<switch>_port_16_description
+      speed_entity: sensor.<switch>_port_16_speed
+      status_entity: sensor.<switch>_port_16_status

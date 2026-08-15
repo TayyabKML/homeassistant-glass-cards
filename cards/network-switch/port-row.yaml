@@ -1,0 +1,139 @@
+# Streamline template — one row of the network switch card.
+#
+# There are no entity IDs in this file: every entity arrives as a variable, so
+# there is nothing in the template body to edit. Substitutions happen in
+# switch-card.yaml, where the template is instantiated.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   port_number        — label shown at the left, e.g. "01". A string, not an int,
+#                        so you keep the leading zero.
+#   description_entity — sensor whose state is the port label ("NAS", "AP upstairs")
+#   speed_entity       — sensor whose state is the link speed in Mbps
+#   status_entity      — sensor whose state is "1" when the link is up
+#
+# Note the status test is `is_state(..., '1')` — a string. Managed switches
+# commonly report link state as 1/0. If yours reports "up"/"on", change the
+# four `is_state` calls below or every port will render as dead.
+#
+# The speed is rendered by ha-card::before: values of 1000 Mbps and above are
+# shown as "1G", anything less as e.g. "100M", and a dead link as an em dash.
+
+streamline_templates:
+  port_row:
+    variables:
+      port_number: "01"
+      description_entity: ""
+      speed_entity: ""
+      status_entity: ""
+    card:
+      type: custom:mushroom-template-card
+      entity: "[[status_entity]]"
+      primary: >-
+        {% set d = states('[[description_entity]]') %}{{ (d if d not in ['',
+        'unknown', 'unavailable', 'None'] else 'Port [[port_number]]') |
+        truncate(24, true, '…') }}
+      icon: mdi:ethernet
+      icon_color: >-
+        {% if is_state('[[status_entity]]', '1') %}#00DDB8{% else %}#FF4F72{% endif %}
+      layout: horizontal
+      fill_container: true
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              --spacing: 8px;
+
+              display: flex !important;
+              flex-direction: row !important;
+              align-items: center !important;
+              height: 50px !important;
+              min-height: 50px !important;
+              box-sizing: border-box !important;
+              padding: 0 clamp(64px, 22%, 108px) 0 46px !important;
+
+              /* the shell now lives on the parent card */
+              background: transparent !important;
+              border: none !important;
+              border-radius: 0 !important;
+              box-shadow: none !important;
+              border-top: 1px solid rgba(255,255,255,0.05) !important;
+
+              position: relative;
+              overflow: hidden !important;
+              transition: background 0.25s ease;
+            }
+            ha-card:hover {
+              background: rgba(255,255,255,0.03) !important;
+            }
+
+            mushroom-card {
+              display: flex !important;
+              align-items: center !important;
+              width: 100% !important;
+              height: 100% !important;
+              padding: 0 !important;
+            }
+            mushroom-state-item {
+              display: flex !important;
+              align-items: center !important;
+              width: 100% !important;
+              height: 100% !important;
+              padding: 0 !important;
+            }
+
+            /* port number (left) + speed (right) in one text run */
+            ha-card::before {
+              content: "[[port_number]] {% set s = states('[[speed_entity]]') | int(0) %}{% if is_state('[[status_entity]]', '1') %}{{ ((s / 1000) | round(1) | string | replace('.0','') ~ 'G') if s >= 1000 else (s ~ 'M') }}{% else %}—{% endif %}";
+              position: absolute;
+              left: 18px;
+              right: 34px;
+              top: 50%;
+              transform: translateY(-50%);
+              text-align: justify;
+              text-align-last: justify;
+              -moz-text-align-last: justify;
+              -webkit-text-align-last: justify;
+              font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+              font-size: 9.5px;
+              font-weight: 700;
+              letter-spacing: 0.6px;
+              line-height: 1;
+              white-space: normal;
+              overflow: hidden;
+              pointer-events: none;
+              z-index: 10;
+              color: {% if is_state('[[status_entity]]', '1') %}rgba(0,221,184,0.7){% else %}rgba(255,255,255,0.25){% endif %};
+            }
+
+            /* link LED */
+            ha-card::after {
+              content: "";
+              position: absolute;
+              right: 18px;
+              top: 50%;
+              margin-top: -3.5px;
+              width: 7px;
+              height: 7px;
+              border-radius: 50%;
+              z-index: 11;
+              background: {% if is_state('[[status_entity]]', '1') %}#00DDB8{% else %}#FF4F72{% endif %};
+              box-shadow: 0 0 {% if is_state('[[status_entity]]', '1') %}10px 2px rgba(0,221,184,0.75){% else %}6px 1px rgba(255,79,114,0.5){% endif %};
+              {% if is_state('[[status_entity]]', '1') %}animation: ledPulse 2.4s ease-in-out infinite;{% endif %}
+            }
+
+            @keyframes ledPulse {
+              0%   { opacity: 1;    box-shadow: 0 0 10px 2px rgba(0,221,184,0.75); }
+              50%  { opacity: 0.45; box-shadow: 0 0 4px 1px rgba(0,221,184,0.25); }
+              100% { opacity: 1;    box-shadow: 0 0 10px 2px rgba(0,221,184,0.75); }
+            }
+          mushroom-shape-icon$: |
+            .shape {
+              width: 26px !important;
+              height: 26px !important;
+              box-shadow: {% if is_state('[[status_entity]]', '1') %}0 0 14px rgba(0,221,184,0.2){% else %}none{% endif %} !important;
+            }
+            ha-icon {
+              --mdc-icon-size: 14px !important;
+            }

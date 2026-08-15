@@ -1,0 +1,116 @@
+# Streamline template — a single port as a vertical tile.
+#
+# The alternative to port-row.yaml: same data, laid out as a tile with a 44px
+# icon rather than a 50px table row. Use this one in a grid, port_row in a
+# vertical stack.
+#
+# Like port_row, this file contains no entity IDs — everything arrives as a
+# variable, so the template body needs no edits.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   port_number        — shown small in the top-left corner
+#   description_entity — sensor whose state is the port label
+#   speed_entity       — sensor whose state is the link speed in Mbps
+#   status_entity      — sensor whose state is "1" when the link is up
+#
+# Unlike port_row, this tile carries its own glass shell (a darker, more opaque
+# recipe than the shared one in theme/) because it is meant to sit directly on
+# the dashboard background rather than inside a stack-in-card.
+
+streamline_templates:
+  port_card:
+    variables:
+      port_number: 1
+      description_entity: ""
+      speed_entity: ""
+      status_entity: ""
+    card:
+      type: custom:mushroom-template-card
+      primary: >
+        {% set desc = states('[[description_entity]]') %}
+        {{ desc if desc not in ['','unknown','None','unavailable'] else 'Port [[port_number]]' }}
+      secondary: >
+        {% if is_state('[[status_entity]]', '1') %}
+          {{ states('[[speed_entity]]') }} Mbps
+        {% else %}
+          No link
+        {% endif %}
+      icon: mdi:ethernet
+      icon_color: >
+        {% if is_state('[[status_entity]]', '1') %}#00DDB8{% else %}#FF4F72{% endif %}
+      layout: vertical
+      fill_container: true
+      multiline_secondary: false
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              background: rgba(11, 14, 24, 0.85) !important;
+              backdrop-filter: blur(28px) saturate(200%);
+              -webkit-backdrop-filter: blur(28px) saturate(200%);
+              border: 1px solid rgba(255,255,255,0.07) !important;
+              border-radius: 18px !important;
+              box-shadow: 0 6px 28px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.07) !important;
+              position: relative;
+              overflow: hidden !important;
+              transition: box-shadow 0.3s ease;
+            }
+            ha-card::before {
+              content: "[[port_number]]";
+              position: absolute;
+              top: 8px;
+              left: 10px;
+              font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+              font-size: 9px;
+              font-weight: 700;
+              letter-spacing: 0.8px;
+              color: rgba(255,255,255,0.2);
+              z-index: 10;
+              line-height: 1;
+            }
+            ha-card::after {
+              content: "";
+              position: absolute;
+              top: 10px;
+              right: 10px;
+              width: 7px;
+              height: 7px;
+              border-radius: 50%;
+              z-index: 10;
+              background: {% if is_state('[[status_entity]]', '1') %}#00DDB8{% else %}#FF4F72{% endif %};
+              box-shadow: 0 0 {% if is_state('[[status_entity]]', '1') %}10px 2px rgba(0,221,184,0.75){% else %}6px 1px rgba(255,79,114,0.5){% endif %};
+              {% if is_state('[[status_entity]]', '1') %}
+              animation: ledPulse 2.4s ease-in-out infinite;
+              {% endif %}
+            }
+            @keyframes ledPulse {
+              0%   { opacity: 1;   box-shadow: 0 0 10px 2px rgba(0,221,184,0.75); }
+              50%  { opacity: 0.5; box-shadow: 0 0 4px 1px rgba(0,221,184,0.25); }
+              100% { opacity: 1;   box-shadow: 0 0 10px 2px rgba(0,221,184,0.75); }
+            }
+          mushroom-shape-icon$: |
+            .shape {
+              --shape-color: {% if is_state('[[status_entity]]', '1') %}rgba(0,221,184,0.16){% else %}rgba(255,79,114,0.12){% endif %} !important;
+              width: 44px !important;
+              height: 44px !important;
+              box-shadow: {% if is_state('[[status_entity]]', '1') %}0 0 18px rgba(0,221,184,0.22){% else %}none{% endif %} !important;
+            }
+            ha-icon {
+              --mdc-icon-size: 20px !important;
+            }
+          mushroom-state-info$: |
+            .container {
+              display: flex !important;
+              flex-direction: row !important;
+              align-items: baseline !important;
+              justify-content: space-between !important;
+              width: 100% !important;
+            }
+            .secondary {
+              flex: 0 0 auto;
+              min-width: 74px;
+              text-align: right;
+              font-family: 'SF Mono', 'Fira Code', monospace;
+            }
