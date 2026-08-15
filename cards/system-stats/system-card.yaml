@@ -1,0 +1,301 @@
+# Home Assistant host health card.
+#
+# A glass shell over a 3-column grid of stat tiles and a 2-column grid of
+# 24-hour load graphs.
+#
+# REPLACE BEFORE USE: nothing.
+#
+# Every entity here is created by an integration with a fixed name, identical on
+# any install — the System Monitor sensors (sensor.system_monitor_*) and the
+# Backup integration's sensor.backup_last_successful_automatic_backup. That is
+# why this is the one card in the repo with no placeholders.
+#
+# If your System Monitor entities are named differently, they were probably set
+# up under an older HA version. Check Developer Tools -> States.
+#
+# Requires: card-mod, stack-in-card, mushroom, mini-graph-card,
+#           the System Monitor integration, and the Backup integration.
+
+type: custom:stack-in-card
+mode: vertical
+card_mod:
+  style: |
+    ha-card {
+      background: rgba(255,255,255,0.04) !important;
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 22px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+      overflow: hidden;
+    }
+cards:
+  - type: markdown
+    text_only: true
+    content: '### HOME ASSISTANT'
+    card_mod:
+      style: |
+        ha-card {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+          padding: 14px 16px 0 16px !important;
+        }
+        ha-card h3 {
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          color: rgba(255,255,255,0.45) !important;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          margin: 0 !important;
+        }
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+      - type: custom:mushroom-template-card
+        entity: sensor.system_monitor_disk_usage
+        primary: '{{ states(''sensor.system_monitor_disk_free'') }} GB'
+        secondary: Disk Free
+        icon: mdi:harddisk
+        icon_color: >-
+          {% set f = states('sensor.system_monitor_disk_usage') |
+          float(0) %} {% if f < 75 %}#5BE1A6{% elif f < 85
+          %}#FFB547{% else %}#FF5E7A{% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style:
+            .: >
+              ha-card { background: transparent !important; border:
+              none !important; box-shadow: none !important; }
+
+              ha-state-icon {
+                color: {% set f = states('sensor.system_monitor_disk_usage') | float(0) %}
+                {% if f < 75 %}#5BE1A6{% elif f < 85 %}#FFB547{% else %}#FF5E7A{% endif %};
+              }
+            mushroom-shape-icon$: |
+              .shape {
+                --shape-color: {% set f = states('sensor.system_monitor_disk_usage') | float(0) %}
+                {% if f < 75 %}rgba(91,225,166,0.14){% elif f < 85 %}rgba(255,181,71,0.14){% else %}rgba(255,94,122,0.14){% endif %} !important;
+              }
+      - type: custom:mushroom-template-card
+        entity: sensor.system_monitor_processor_temperature
+        primary: >-
+          {{ states('sensor.system_monitor_processor_temperature')
+          }}°C
+        secondary: CPU Temp
+        icon: mdi:thermometer-lines
+        icon_color: >-
+          {% set t =
+          states('sensor.system_monitor_processor_temperature') |
+          int(0) %} {% if t < 60 %}#5BE1A6{% elif t < 75 %}#FFB547{%
+          else %}#FF5E7A{% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style:
+            .: >
+              ha-card { background: transparent !important; border:
+              none !important; box-shadow: none !important; }
+
+              ha-state-icon {
+                color: {% set t = states('sensor.system_monitor_processor_temperature') | int(0) %}
+                {% if t < 60 %}#5BE1A6{% elif t < 75 %}#FFB547{% else %}#FF5E7A{% endif %};
+              }
+            mushroom-shape-icon$: |
+              .shape {
+                --shape-color: {% set t = states('sensor.system_monitor_processor_temperature') | int(0) %}
+                {% if t < 60 %}rgba(91,225,166,0.14){% elif t < 75 %}rgba(255,181,71,0.14){% else %}rgba(255,94,122,0.14){% endif %} !important;
+              }
+      - type: custom:mushroom-template-card
+        entity: sensor.system_monitor_last_boot
+        primary: >-
+          {% set lb = states('sensor.system_monitor_last_boot') %}
+          {% if lb not in ['unknown','unavailable'] %}
+            {% set secs = (now() - as_datetime(lb)).total_seconds() %}
+            {% set d = (secs / 86400) | int %}
+            {% set h = ((secs % 86400) / 3600) | int %}
+            {{ d }}d {{ h }}h
+          {% else %}—{% endif %}
+        secondary: Uptime
+        icon: mdi:home-assistant
+        icon_color: '#7AA7FF'
+        tap_action:
+          action: more-info
+        card_mod:
+          style:
+            .: >
+              ha-card { background: transparent !important; border:
+              none !important; box-shadow: none !important; }
+
+              ha-state-icon { color: #7AA7FF; }
+            mushroom-shape-icon$: >
+              .shape { --shape-color: rgba(122,167,255,0.14)
+              !important; }
+      - type: custom:mushroom-template-card
+        entity: sensor.backup_last_successful_automatic_backup
+        primary: >-
+          {% set b =
+          states('sensor.backup_last_successful_automatic_backup')
+          %} {% if b not in ['unknown','unavailable'] %}
+            {{ ((now() - as_datetime(b)).total_seconds() / 86400) | round(0) | int }}d ago
+          {% else %}Never{% endif %}
+        secondary: Last Backup
+        icon: mdi:backup-restore
+        icon_color: >-
+          {% set b =
+          states('sensor.backup_last_successful_automatic_backup')
+          %} {% if b in ['unknown','unavailable'] %}#FF5E7A {% else
+          %}{% set d = (now() - as_datetime(b)).total_seconds() /
+          86400 %} {% if d < 2 %}#5BE1A6{% elif d < 7 %}#FFB547{%
+          else %}#FF5E7A{% endif %}{% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style:
+            .: >
+              ha-card { background: transparent !important; border:
+              none !important; box-shadow: none !important; }
+
+              ha-state-icon {
+                color: {% set b = states('sensor.backup_last_successful_automatic_backup') %}
+                {% if b in ['unknown','unavailable'] %}#FF5E7A
+                {% else %}{% set d = (now() - as_datetime(b)).total_seconds() / 86400 %}
+                {% if d < 2 %}#5BE1A6{% elif d < 7 %}#FFB547{% else %}#FF5E7A{% endif %}{% endif %};
+              }
+            mushroom-shape-icon$: >
+              .shape { --shape-color: rgba(255,255,255,0.08)
+              !important; }
+      - type: custom:mushroom-template-card
+        entity: sensor.system_monitor_processor_use
+        primary: >-
+          {{ states.update | selectattr('state','eq','on') | list |
+          count }}
+        secondary: Updates
+        icon: mdi:package-up
+        icon_color: >-
+          {% set n = states.update | selectattr('state','eq','on') |
+          list | count %} {% if n == 0 %}#5BE1A6{% elif n < 4
+          %}#FFB547{% else %}#FF5E7A{% endif %}
+        tap_action:
+          action: navigate
+          navigation_path: /config/updates
+        card_mod:
+          style:
+            .: >
+              ha-card { background: transparent !important; border:
+              none !important; box-shadow: none !important; }
+
+              ha-state-icon {
+                color: {% set n = states.update | selectattr('state','eq','on') | list | count %}
+                {% if n == 0 %}#5BE1A6{% elif n < 4 %}#FFB547{% else %}#FF5E7A{% endif %};
+              }
+            mushroom-shape-icon$: >
+              .shape { --shape-color: rgba(255,255,255,0.08)
+              !important; }
+      - type: custom:mushroom-template-card
+        entity: sensor.system_monitor_processor_use
+        primary: >-
+          {{ states | selectattr('state','eq','unavailable') |
+          rejectattr('domain','in',['button','update']) | list |
+          count }}
+        secondary: Unavailable
+        icon: mdi:alert-circle-outline
+        icon_color: >-
+          {% set n = states | selectattr('state','eq','unavailable')
+          | rejectattr('domain','in',['button','update']) | list |
+          count %} {% if n < 45 %}#5BE1A6{% elif n < 60 %}#FFB547{%
+          else %}#FF5E7A{% endif %}
+        tap_action:
+          action: navigate
+          navigation_path: /config/entities
+        card_mod:
+          style:
+            .: >
+              ha-card { background: transparent !important; border:
+              none !important; box-shadow: none !important; }
+
+              ha-state-icon {
+                color: {% set n = states | selectattr('state','eq','unavailable') | rejectattr('domain','in',['button','update']) | list | count %}
+                {% if n < 45 %}#5BE1A6{% elif n < 60 %}#FFB547{% else %}#FF5E7A{% endif %};
+              }
+            mushroom-shape-icon$: |
+              .shape {
+                --shape-color: {% set n = states | selectattr('state','eq','unavailable') | rejectattr('domain','in',['button','update']) | list | count %}
+                {% if n < 45 %}rgba(91,225,166,0.14){% elif n < 60 %}rgba(255,181,71,0.14){% else %}rgba(255,94,122,0.14){% endif %} !important;
+              }
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: custom:mini-graph-card
+        name: CPU Load
+        icon: mdi:chip
+        entities:
+          - sensor.system_monitor_processor_use
+        hours_to_show: 24
+        points_per_hour: 10
+        animate: true
+        hour24: true
+        height: 120
+        decimals: 0
+        state_adaptive_color: true
+        show_state: true
+        line_width: 2
+        color_thresholds:
+          - value: 20
+            color: '#5BE1A6'
+          - value: 50
+            color: '#FFB547'
+          - value: 60
+            color: '#FF8A3D'
+          - value: 90
+            color: '#FF5E7A'
+        show:
+          extrema: true
+          name_adaptive_color: true
+          icon_adaptive_color: true
+          fill: fade
+        card_mod:
+          style: |
+            ha-card {
+              background: transparent !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
+      - type: custom:mini-graph-card
+        name: RAM Load
+        icon: mdi:memory
+        entities:
+          - sensor.system_monitor_memory_usage
+        hours_to_show: 24
+        points_per_hour: 10
+        animate: true
+        hour24: true
+        height: 120
+        decimals: 0
+        state_adaptive_color: true
+        show_state: true
+        line_width: 2
+        color_thresholds:
+          - value: 20
+            color: '#5BE1A6'
+          - value: 50
+            color: '#FFB547'
+          - value: 60
+            color: '#FF8A3D'
+          - value: 90
+            color: '#FF5E7A'
+        show:
+          extrema: true
+          name_adaptive_color: true
+          icon_adaptive_color: true
+          fill: fade
+        card_mod:
+          style: |
+            ha-card {
+              background: transparent !important;
+              border: none !important;
+              box-shadow: none !important;
+            }
