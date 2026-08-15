@@ -7,6 +7,8 @@ count sits in the header.
 Sixteen ports in a single glass shell at 50px per row. Readable at a glance, and short
 enough not to dominate a view.
 
+![The network switch card: a header reading NETWORK SWITCH 6/16, then port rows showing a live 1G link with a green LED and two dead ports with red LEDs](screenshot.png)
+
 ## Files
 
 | File | What it is |
