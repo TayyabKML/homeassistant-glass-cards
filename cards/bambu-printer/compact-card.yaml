@@ -1,0 +1,150 @@
+# Bambu Lab P1S status card — compact.
+#
+# A single row: printer label and filename, status pill, a view-toggle button,
+# a linear progress bar, and Nozzle / Bed / Layer readouts underneath.
+#
+# Wrapped in a conditional, so the whole card disappears when the printer is
+# idle, finished, unknown or unavailable. It only takes up space while there is
+# something to look at.
+#
+# REPLACE BEFORE USE:
+#   <printer>     — your printer's device prefix. The ha-bambulab integration
+#                   names entities sensor.<model>_<serial>_<thing>, so yours
+#                   looks like p1s_01p00c590900937 or x1c_00m09a361800428.
+#                   Find it in Developer Tools -> States.
+#   <view_toggle> — an input_boolean helper you create. Tapping the card flips
+#                   it, and the button icon follows. Use it to switch a
+#                   companion card between the printer camera and the cover
+#                   image, or delete the tap_action and the button if you
+#                   don't want it.
+#
+# Entities it reads, with your prefix substituted:
+#   sensor.<printer>_print_progress      sensor.<printer>_current_stage
+#   sensor.<printer>_current_file        sensor.<printer>_remaining_time
+#   sensor.<printer>_nozzle_temperature  sensor.<printer>_bed_temperature
+#   sensor.<printer>_current_layer       sensor.<printer>_total_layer_count
+
+type: conditional
+conditions:
+  - entity: sensor.<printer>_current_stage
+    state_not: idle
+  - entity: sensor.<printer>_current_stage
+    state_not: finish
+  - entity: sensor.<printer>_current_stage
+    state_not: unknown
+  - entity: sensor.<printer>_current_stage
+    state_not: unavailable
+card:
+  type: vertical-stack
+  card_mod:
+    style: |
+      ha-card {
+        background: none !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+  cards:
+    - type: custom:button-card
+      entity: sensor.<printer>_print_progress
+      show_name: false
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: call-service
+        service: input_boolean.toggle
+        service_data:
+          entity_id: input_boolean.<view_toggle>
+      custom_fields:
+        stats: |
+          [[[
+            const p  = '<printer>';
+            const s  = (id) => states[`sensor.${p}_${id}`]?.state ?? '';
+
+            const stage    = s('current_stage');
+            const progress = Math.min(parseFloat(s('print_progress')) || 0, 100);
+            const file     = s('current_file') || 'Printing…';
+            const isStream = states['input_boolean.<view_toggle>']?.state === 'on';
+
+            const rawTime = s('remaining_time');
+            let timeStr = '';
+            if (rawTime && rawTime !== 'unknown' && rawTime !== '0') {
+              const m = rawTime.match(/(\d+)h\s*(\d+)m/);
+              if (m) {
+                const h = parseInt(m[1]), mn = parseInt(m[2]);
+                timeStr = h > 0 ? `${h}h ${String(mn).padStart(2,'0')}m` : `${mn}m`;
+              }
+            }
+
+            const fmt = (id) => {
+              const n = parseFloat(s(id));
+              return isNaN(n) ? '--' : `${Math.round(n)}°`;
+            };
+
+            const sl = stage.toLowerCase();
+            let bBg='#14261a', bFg='#4ade80', bBr='#166534';
+            if (sl.includes('pause')) { bBg='#2a1f06'; bFg='#fbbf24'; bBr='#854d0e'; }
+            else if (sl !== 'printing') { bBg='#1e2430'; bFg='#94a3b8'; bBr='#334155'; }
+
+            return `
+              <div style="padding:14px 16px;font-family:'Roboto','Noto Sans',sans-serif;">
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:8px;overflow:hidden;min-width:0;">
+                    <span style="font-size:12px;font-weight:700;letter-spacing:0.14em;color:#f97316;text-shadow:0 0 8px rgba(249,115,22,0.7);flex-shrink:0;">P1S</span>
+                    <span style="font-size:13px;color:var(--secondary-text-color);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${file}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                    <span style="font-size:10px;padding:2px 8px;border-radius:20px;letter-spacing:0.08em;background:${bBg};color:${bFg};border:1px solid ${bBr};">${stage.replace(/_/g,' ').toUpperCase()}</span>
+                    <div style="width:26px;height:20px;border-radius:6px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.35);display:flex;align-items:center;justify-content:center;" title="${isStream ? 'Showing stream — tap to see cover' : 'Showing cover — tap to see stream'}">
+                      <span style="font-size:12px;line-height:1;">${isStream ? '📹' : '🖼️'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                  <div style="flex:1;position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;height:100%;width:${progress.toFixed(1)}%;border-radius:3px;background:linear-gradient(90deg,#f97316,#fb923c);box-shadow:0 0 8px rgba(249,115,22,0.6);"></div>
+                  </div>
+                  <span style="font-size:13px;font-weight:600;color:#f97316;text-shadow:0 0 8px rgba(249,115,22,0.5);white-space:nowrap;">${Math.round(progress)}%</span>
+                  ${timeStr ? `<span style="font-size:12px;color:var(--secondary-text-color);white-space:nowrap;">${timeStr}</span>` : ''}
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 10px;">
+                    <div style="font-size:10px;color:var(--secondary-text-color);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Nozzle</div>
+                    <div style="font-size:15px;font-weight:500;color:#f97316;">${fmt('nozzle_temperature')}</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 10px;">
+                    <div style="font-size:10px;color:var(--secondary-text-color);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Bed</div>
+                    <div style="font-size:15px;font-weight:500;color:#fb923c;">${fmt('bed_temperature')}</div>
+                  </div>
+                  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 10px;">
+                    <div style="font-size:10px;color:var(--secondary-text-color);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:3px;">Layer</div>
+                    <div style="font-size:15px;font-weight:500;color:#fdba74;">${s('current_layer') !== '' ? s('current_layer') + '<span style="font-size:11px;color:var(--secondary-text-color);">/' + s('total_layer_count') + '</span>' : '--'}</div>
+                  </div>
+                </div>
+
+              </div>
+            `;
+          ]]]
+      card_mod:
+        style: |
+          ha-card {
+            border: 1px solid rgba(249,115,22,0.25) !important;
+          }
+      styles:
+        card:
+          - padding: '0'
+          - background: >-
+              var(--ha-card-background, var(--card-background-color,
+              white))
+        grid:
+          - grid-template-columns: 1fr
+          - grid-template-areas: '"stats"'
+          - width: 100%
+        custom_fields:
+          stats:
+            - width: 100%
+            - min-width: '0'
+            - padding: '0'
+            - box-sizing: border-box

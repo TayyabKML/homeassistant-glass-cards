@@ -60,8 +60,9 @@ One row per port — description, negotiated speed, pulsing link LED, live up-co
 Detection snapshots with an age badge and a border that reacts to how fresh they are.
 </td>
 <td width="50%" valign="top">
+<a href="cards/bambu-printer/"><img src="cards/bambu-printer/screenshot.png" width="100%" alt="A printer row with status pill, progress bar and temperature readouts"></a>
 <b><a href="cards/bambu-printer/">Bambu Lab printer</a></b><br>
-SVG progress ring, remaining time, nozzle/bed/layer chips, cover thumbnail, chamber light and pause/resume.
+Compact print status — progress bar, time remaining, nozzle/bed/layer. Hides itself when the printer is idle.
 </td>
 </tr>
 </table>

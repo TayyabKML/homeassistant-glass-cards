@@ -10,7 +10,7 @@ setup and the things that will trip you up.
 | [`bubble-cards`](bubble-cards/) | Light, switch, media player and climate cards sharing one glass recipe |
 | [`network-switch`](network-switch/) | Per-port status table for a managed switch, with a live up-count |
 | [`camera-snapshot`](camera-snapshot/) | Detection snapshots with an age badge and freshness-reactive border |
-| [`bambu-printer`](bambu-printer/) | 3D printer status: SVG progress ring, remaining time, chamber light, pause/resume |
+| [`bambu-printer`](bambu-printer/) | Compact 3D printer status row, hidden while the printer is idle |
 | [`maintenance-tracker`](maintenance-tracker/) | Recurring household tasks with tap-to-stamp |
 | [`system-stats`](system-stats/) | Host health tiles and 24-hour load graphs |
 
