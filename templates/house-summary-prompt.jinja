@@ -1,0 +1,76 @@
+{#-
+  House state summary prompt.
+
+  Produces a compact description of current house state for an LLM to summarise.
+
+  REPLACE BEFORE USE:
+    <indoor_temp>  — an indoor temperature sensor
+    <outdoor_temp> — an outdoor temperature sensor
+    <house_power>  — whole-house power draw, in watts
+
+  Everything else iterates over domains and device classes rather than naming
+  entities, so it works unmodified on any install.
+
+  Keep the output constraint in the prompt AND truncate the response — input_text
+  helpers are capped at 255 characters and will fail silently past that.
+
+  Keep the output constraint in the prompt AND truncate the response — input_text
+  helpers are capped at 255 characters and will fail silently past that.
+-#}
+
+You are summarising the current state of a home. Write ONE sentence, under 200
+characters, in plain British English. Mention only what is notable or unusual —
+skip anything that is in its normal state. No preamble, no lists, no emoji.
+
+Current state:
+
+People:
+{% for person in states.person -%}
+  - {{ person.name }}: {{ person.state }}
+{% endfor %}
+
+Occupancy:
+{% for sensor in states.binary_sensor
+   if sensor.attributes.device_class in ['occupancy', 'motion', 'presence']
+   and sensor.state == 'on' -%}
+  - {{ sensor.name }}: detected
+{% endfor %}
+
+Lights on:
+{% set lights_on = states.light | selectattr('state', 'eq', 'on') | list %}
+{% if lights_on | count == 0 -%}
+  - none
+{% else -%}
+{% for light in lights_on -%}
+  - {{ light.name }}
+{% endfor %}
+{% endif %}
+
+Media:
+{% set playing = states.media_player | selectattr('state', 'eq', 'playing') | list %}
+{% if playing | count == 0 -%}
+  - nothing playing
+{% else -%}
+{% for mp in playing -%}
+  - {{ mp.name }}: {{ mp.attributes.media_title | default('playing', true) }}
+{% endfor %}
+{% endif %}
+
+Climate:
+  - Indoor: {{ states('sensor.<indoor_temp>') }}°C
+  - Outdoor: {{ states('sensor.<outdoor_temp>') }}°C
+
+Power:
+  - Current draw: {{ states('sensor.<house_power>') }} W
+
+Doors and windows open:
+{% set open = states.binary_sensor
+   | selectattr('attributes.device_class', 'in', ['door', 'window', 'garage_door'])
+   | selectattr('state', 'eq', 'on') | list %}
+{% if open | count == 0 -%}
+  - all closed
+{% else -%}
+{% for s in open -%}
+  - {{ s.name }}
+{% endfor %}
+{% endif %}
