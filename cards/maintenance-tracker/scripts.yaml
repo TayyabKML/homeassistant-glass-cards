@@ -1,0 +1,27 @@
+# One stamp script per tracked task. Add to scripts.yaml.
+#
+# REPLACE BEFORE USE:
+#   <task> — snake_case task name. Must match the helper and the card.
+#   <Task> — display label shown in the script list.
+#
+# Repeat the block once per task you want to track.
+#
+# Two details worth keeping:
+#
+#   · Only `date` is set, not `datetime`. The helper is date-only (see
+#     helpers.yaml) — passing a time to a date-only helper fails.
+#   · `action:` is the current key for calling a service. On Home Assistant
+#     2024.7 and older, use `service:` instead.
+#
+# Calling the service through a script rather than straight from the card means
+# the same action is reachable from an automation, a voice command or an NFC tag.
+
+set_<task>_today:
+  alias: Set <Task> Today
+  description: ''
+  mode: single
+  sequence:
+    - data:
+        entity_id: input_datetime.last_<task>
+        date: '{{ now().strftime(''%Y-%m-%d'') }}'
+      action: input_datetime.set_datetime

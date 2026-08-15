@@ -1,0 +1,19 @@
+# One input_datetime per tracked task, holding the last-done timestamp.
+#
+# Add to configuration.yaml, or create the equivalent via Settings → Helpers.
+#
+# REPLACE BEFORE USE:
+#   <task> — snake_case task name. Must match the script and the card.
+#   <Task> — display label.
+#
+# Repeat the block once per task you want to track.
+#
+# `has_time: false` is deliberate. These tasks are tracked to the day, the card
+# only ever compares dates, and the stamp script sets `date` alone. Turning time
+# on means the script has to supply both halves or the call fails.
+
+input_datetime:
+  last_<task>:
+    name: <Task> last done
+    has_date: true
+    has_time: false

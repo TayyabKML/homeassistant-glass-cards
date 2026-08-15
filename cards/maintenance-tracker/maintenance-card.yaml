@@ -1,0 +1,62 @@
+# Maintenance tracker card — "last done / days since", tap to stamp.
+#
+# A plain manual card. Paste it into a view once per task you want to track.
+#
+# REPLACE BEFORE USE:
+#   <task>        — snake_case task name, matching the helper and the script
+#   <Task>        — display label, e.g. "Filter Clean"
+#   <icon>        — mdi icon name, without the "mdi:" prefix
+#   <red_days>    — days after which the card goes red
+#   <amber_days>  — days after which it goes amber
+#
+# The two day thresholds appear twice each: once in icon_color, once in the
+# card_mod glow block. Change both or the icon and the border disagree.
+#
+# Needs an input_datetime helper and a stamp script per task — see helpers.yaml
+# and scripts.yaml.
+
+type: custom:mushroom-template-card
+entity: input_datetime.last_<task>
+primary: <Task>
+secondary: >-
+  {% set d = as_datetime(states('input_datetime.last_<task>'))
+  %} {% if d %}{{ (now().date() - d.date()).days }} days ago{% else
+  %}Never recorded{% endif %}
+icon: mdi:<icon>
+icon_color: >-
+  {% set d = as_datetime(states('input_datetime.last_<task>'))
+  %} {% if d %}
+    {% set days = (now().date() - d.date()).days %}
+    {% if days >= <red_days> %}#FF5E7A{% elif days >= <amber_days> %}#FFB547{% else %}#5BE1A6{% endif %}
+  {% else %}#FF5E7A{% endif %}
+layout: horizontal
+tap_action:
+  action: call-service
+  service: script.set_<task>_today
+hold_action:
+  action: more-info
+card_mod:
+  style: >
+    {% set d =
+    as_datetime(states('input_datetime.last_<task>')) %}
+
+    {% set days = (now().date() - d.date()).days if d else 999 %}
+
+    {% if days >= <red_days> %}
+      {% set glow = '255,94,122' %}
+    {% elif days >= <amber_days> %}
+      {% set glow = '255,181,71' %}
+    {% else %}
+      {% set glow = '91,225,166' %}
+    {% endif %}
+
+    ha-card {
+      background: rgba(255,255,255,0.04) !important;
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
+      border: 1px solid rgba({{ glow }},0.35) !important;
+      border-radius: 20px !important;
+      box-shadow:
+        0 0 18px rgba({{ glow }},0.25),
+        inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    }
