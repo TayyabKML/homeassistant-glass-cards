@@ -1,0 +1,57 @@
+# Streamline template — climate card with a temperature slider.
+#
+# Purple glass matching the media player card, with a target-temperature slider
+# tinted to match.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   entity — a climate entity
+#   name   — display label, default "Climate"
+#
+# Also accepts `rows`. It is ignored.
+
+streamline_templates:
+  climate_bubble_card:
+    default:
+      - entity: ""
+      - name: "Climate"
+      - rows: "1.5"
+    variables:
+      - entity
+      - name
+      - rows
+    card:
+      type: custom:mushroom-climate-card
+      entity: "[[entity]]"
+      name: "[[name]]"
+      show_temperature_control: true
+      fill_container: true
+      layout: horizontal
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              background:
+                radial-gradient(120% 80% at 0% 0%, rgba(184,154,255,0.18) 0%, rgba(184,154,255,0) 60%),
+                rgba(255,255,255,0.04) !important;
+              backdrop-filter: blur(22px) saturate(160%);
+              -webkit-backdrop-filter: blur(22px) saturate(160%);
+              border: 1px solid rgba(255,255,255,0.08) !important;
+              border-radius: 22px !important;
+              box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                0 8px 24px rgba(0,0,0,0.28) !important;
+            }
+            ha-state-icon {
+              color: #B89AFF;
+            }
+          mushroom-shape-icon$: |
+            .shape {
+              --shape-color: rgba(184,154,255,0.16) !important;
+            }
+          mushroom-climate-temperature-control$: |
+            mushroom-slider {
+              --main-color: #B89AFF !important;
+              --bg-color: rgba(184,154,255,0.18) !important;
+            }

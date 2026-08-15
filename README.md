@@ -17,6 +17,7 @@ live in [`theme/`](theme/) so cards stay visually consistent.
 |---|---|
 | [`cards/room-card`](cards/room-card/) | Room overview tile — climate, light/media/switch chips, occupancy bar, taps through to the room's view |
 | [`cards/room-description`](cards/room-description/) | Room status bar for a view header — occupancy pill, time since, temperature |
+| [`cards/bubble-cards`](cards/bubble-cards/) | Light, switch, media player and climate entity cards sharing one glass recipe and variable set |
 | [`cards/network-switch`](cards/network-switch/) | Table-style card showing per-port status, speed and link activity for a managed switch |
 | [`cards/camera-snapshot`](cards/camera-snapshot/) | Streamline template for detection snapshots, with an age badge and a border that reacts to freshness |
 | [`cards/bambu-printer`](cards/bambu-printer/) | Bambu Lab P1S card — SVG progress ring, remaining time, temperatures, chamber light, pause/resume |

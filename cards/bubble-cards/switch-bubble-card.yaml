@@ -1,0 +1,86 @@
+# Streamline template — switch card with a configurable accent.
+#
+# The one card in this family whose accent colour you choose per instance, so a
+# desk lamp, a fan and a grow light can each read differently while sharing the
+# same shape. Shows "Off · 20 minutes ago" when off.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   entity     — a switch entity
+#   name       — display label
+#   icon       — default mdi:toggle-switch-variant
+#   icon_color — ON-state accent. MUST be a 6-digit hex like "#5BE1A6".
+#                See the note below.
+#
+# Also accepts `tint`, `size`, `rows` and `button_type`. They are ignored.
+#
+# IMPORTANT — icon_color must be hex, not a colour name. The card builds its
+# border and glow by appending a two-digit alpha to whatever you pass:
+#
+#     [[icon_color]]55    ->  #5BE1A655
+#     [[icon_color]]40    ->  #5BE1A640
+#
+# Pass "red" or "amber" and you get "red55", which is not a colour, so the
+# border and glow silently vanish. The icon itself will still tint, which makes
+# this an easy one to misdiagnose.
+
+streamline_templates:
+  switch_bubble_card:
+    default:
+      - entity: ""
+      - name: ""
+      - icon: "mdi:toggle-switch-variant"
+      - icon_color: "#FFB547"
+      - tint: "rgba(255,255,255,0)"
+      - size: "large"
+      - rows: "1"
+      - button_type: "switch"
+    variables:
+      - entity
+      - name
+      - icon
+      - icon_color
+      - tint
+      - size
+      - rows
+      - button_type
+    card:
+      type: custom:mushroom-template-card
+      entity: "[[entity]]"
+      primary: "[[name]]"
+      secondary: >
+        {% if is_state('[[entity]]', 'on') %}
+          On
+        {% else %}
+          Off · {{ relative_time(states['[[entity]]'].last_changed) }} ago
+        {% endif %}
+      icon: "[[icon]]"
+      icon_color: >
+        {% if is_state('[[entity]]', 'on') %}[[icon_color]]{% else %}disabled{% endif %}
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      double_tap_action:
+        action: more-info
+      fill_container: true
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              background: rgba(255,255,255,0.04) !important;
+              backdrop-filter: blur(22px) saturate(160%);
+              -webkit-backdrop-filter: blur(22px) saturate(160%);
+              border: 1px solid {{ '[[icon_color]]55' if is_state('[[entity]]', 'on') else 'rgba(255,255,255,0.08)' }} !important;
+              border-radius: 22px !important;
+              box-shadow: {{ '0 0 18px [[icon_color]]40, inset 0 1px 0 rgba(255,255,255,0.08)' if is_state('[[entity]]', 'on') else 'inset 0 1px 0 rgba(255,255,255,0.08)' }} !important;
+              transition: box-shadow 0.3s ease, border-color 0.3s ease !important;
+            }
+            ha-state-icon {
+              color: {{ '[[icon_color]]' if is_state('[[entity]]', 'on') else 'rgba(255,255,255,0.28)' }};
+            }
+          mushroom-shape-icon$: |
+            .shape {
+              --shape-color: none !important;
+            }

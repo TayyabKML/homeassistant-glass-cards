@@ -7,6 +7,7 @@ setup and the things that will trip you up.
 |---|---|
 | [`room-card`](room-card/) | Per-room overview tile: climate, status chips, occupancy, tap-through |
 | [`room-description`](room-description/) | Room status bar for a view header: occupancy, time since, temperature |
+| [`bubble-cards`](bubble-cards/) | Light, switch, media player and climate cards sharing one glass recipe |
 | [`network-switch`](network-switch/) | Per-port status table for a managed switch, with a live up-count |
 | [`camera-snapshot`](camera-snapshot/) | Detection snapshots with an age badge and freshness-reactive border |
 | [`bambu-printer`](bambu-printer/) | 3D printer status: SVG progress ring, remaining time, chamber light, pause/resume |

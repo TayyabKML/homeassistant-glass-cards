@@ -1,0 +1,76 @@
+# Streamline template — media player with cover art and volume.
+#
+# Purple glass, media info, transport controls and a tinted volume slider.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   entity — a media_player entity
+#   name   — display label
+#   icon   — default mdi:music-note
+#
+# Also accepts `rows` and `cover_background`. They are ignored.
+#
+# Unlike the light and switch cards, the glass here does not react to state —
+# it is always purple. Media players spend most of their time idle and a card
+# that only looks alive while playing reads as broken the rest of the time.
+
+streamline_templates:
+  media_player_bubble_card:
+    default:
+      - entity: ""
+      - name: ""
+      - icon: "mdi:music-note"
+      - rows: "1.5"
+      - cover_background: true
+    variables:
+      - entity
+      - name
+      - icon
+      - rows
+      - cover_background
+    card:
+      type: custom:mushroom-media-player-card
+      entity: "[[entity]]"
+      name: "[[name]]"
+      fill_container: true
+      use_media_info: true
+      show_volume_level: true
+      layout: horizontal
+      collapsible_controls: false
+      volume_controls:
+        - volume_buttons
+        - volume_set
+      media_controls:
+        - on_off
+        - play_pause_stop
+        - previous
+        - next
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              background:
+                radial-gradient(120% 80% at 0% 0%, rgba(184,154,255,0.18) 0%, rgba(184,154,255,0) 60%),
+                rgba(255,255,255,0.04) !important;
+              backdrop-filter: blur(22px) saturate(160%);
+              -webkit-backdrop-filter: blur(22px) saturate(160%);
+              border: 1px solid rgba(255,255,255,0.08) !important;
+              border-radius: 22px !important;
+              box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                0 10px 28px rgba(0,0,0,0.30) !important;
+              overflow: hidden;
+            }
+            ha-state-icon {
+              color: #B89AFF;
+            }
+          mushroom-shape-icon$: |
+            .shape {
+              --shape-color: rgba(184,154,255,0.14) !important;
+            }
+          mushroom-media-player-volume-control$: |
+            mushroom-slider {
+              --main-color: #B89AFF !important;
+              --bg-color: rgba(184,154,255,0.18) !important;
+            }

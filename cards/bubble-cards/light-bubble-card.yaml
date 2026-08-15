@@ -1,0 +1,75 @@
+# Streamline template — light card with a brightness slider.
+#
+# Amber glass that lights up when the light is on: the border, glow and icon all
+# shift, and the brightness slider is tinted to match.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   entity — a light entity
+#   name   — display label
+#   icon   — default mdi:lightbulb
+#
+# Also accepts `size`, `rows` and `button_type`. They are ignored — pass them or
+# don't, it makes no difference to what renders.
+
+streamline_templates:
+  light_bubble_card:
+    default:
+      - entity: ""
+      - name: ""
+      - icon: "mdi:lightbulb"
+      - size: "large"
+      - rows: "1"
+      - button_type: "slider"
+    variables:
+      - entity
+      - name
+      - icon
+      - size
+      - rows
+      - button_type
+    card:
+      type: custom:mushroom-light-card
+      entity: "[[entity]]"
+      name: "[[name]]"
+      icon: "[[icon]]"
+      show_brightness_control: true
+      show_color_temp_control: false
+      show_color_control: false
+      collapsible_controls: false
+      use_light_color: false
+      fill_container: true
+      tap_action:
+        action: toggle
+      hold_action:
+        action: more-info
+      double_tap_action:
+        action: more-info
+      card_mod:
+        style:
+          .: |
+            ha-card {
+              background:
+                radial-gradient(120% 80% at 0% 0%, rgba(255,181,71,0.18) 0%, rgba(255,181,71,0) 55%),
+                rgba(255,255,255,0.04) !important;
+              backdrop-filter: blur(22px) saturate(160%);
+              -webkit-backdrop-filter: blur(22px) saturate(160%);
+              border: 1px solid {{ 'rgba(255,181,71,0.35)' if is_state('[[entity]]', 'on') else 'rgba(255,255,255,0.08)' }} !important;
+              border-radius: 22px !important;
+              box-shadow: {{ '0 0 18px rgba(255,181,71,0.25), inset 0 1px 0 rgba(255,255,255,0.08)' if is_state('[[entity]]', 'on') else 'inset 0 1px 0 rgba(255,255,255,0.08)' }} !important;
+              transition: box-shadow 0.3s ease, border-color 0.3s ease !important;
+            }
+            ha-state-icon {
+              color: {{ '#FFB547' if is_state('[[entity]]', 'on') else 'rgba(255,255,255,0.28)' }};
+            }
+          mushroom-shape-icon$: |
+            .shape {
+              --shape-color: {{ 'rgba(255,181,71,0.16)' if is_state('[[entity]]', 'on') else 'none' }} !important;
+            }
+          mushroom-light-brightness-control$: |
+            .slider {
+              --slider-color: #FFB547;
+              --slider-bg-color: rgba(255,181,71,0.15);
+              border-radius: 8px;
+            }
