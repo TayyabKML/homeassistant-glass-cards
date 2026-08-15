@@ -3,6 +3,11 @@
 A Streamline template for detection snapshot images, with a corner badge showing how long
 ago the detection fired and a border that reacts to how fresh it is.
 
+![A detection snapshot with a 5h age badge in the top-right corner and a Garden • Bird caption bar across the bottom](screenshot.png)
+
+The snapshot content is blurred in this example image only — the card doesn't blur. The
+filters it does apply are dimming and greyscale as a snapshot ages, described below.
+
 ## What it does
 
 - A badge in the top-right corner counts the age of the snapshot: `NOW` under a minute,
