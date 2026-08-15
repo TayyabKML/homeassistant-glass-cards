@@ -1,0 +1,260 @@
+# Streamline template — a room overview tile.
+#
+# One 150px tile per room: name, temperature and humidity, a column of status
+# chips for lights / media / a switch, and an occupancy bar along the bottom.
+# The whole tile tints and glows in the colour of whatever is active, and taps
+# through to that room's own view.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Every variable is optional. Leave one blank and that part of the tile simply
+# isn't drawn — no gaps, no "unknown". That's what lets one template cover a
+# room with a full sensor stack and a spare bedroom with nothing but a lamp.
+#
+# Variables:
+#   name                    — room label
+#   navigation_path         — view to open on tap, e.g. /dashboard/kitchen
+#   icon                    — accepted but unused; kept for compatibility
+#   entity_id_temperature   — temperature sensor
+#   entity_id_humidity      — humidity sensor
+#   entity_id_lights        — light or switch entity; drives the amber chip
+#   lights_icon             — icon for that chip (default mdi:lightbulb)
+#   entity_id_media_player  — media player; drives the green chip
+#   entity_id_switch        — any switch; drives the blue chip
+#   switch_icon             — icon for that chip
+#   weather                 — set to anything other than "false" to replace the
+#                             temperature/humidity line with outdoor conditions
+#
+# CHECK THIS ONE: the weather lookup reads `weather.forecast_home`, the entity
+# Home Assistant creates when you accept the default Met.no integration during
+# onboarding. It is used for the temperature unit, and for outdoor conditions
+# when `weather` is enabled. If your weather entity is named differently,
+# change both references in the `top_left` field below.
+
+streamline_templates:
+  room_card:
+    default:
+      - name: ""
+      - icon: ""
+      - navigation_path: ""
+      - entity_id_temperature: ""
+      - entity_id_humidity: ""
+      - entity_id_lights: ""
+      - lights_icon: "mdi:lightbulb"
+      - entity_id_media_player: ""
+      - entity_id_motion: ""
+      - entity_id_switch: ""
+      - switch_icon: "mdi:toggle-switch-variant"
+      - weather: "false"
+    card:
+      type: custom:button-card
+      entity: "[[entity_id_motion]]"
+      show_name: false
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: navigate
+        navigation_path: "[[navigation_path]]"
+      custom_fields:
+        top_left: |
+          [[[
+            const temp = states['[[entity_id_temperature]]']?.state;
+            const hum  = states['[[entity_id_humidity]]']?.state;
+            const unit = states['weather.forecast_home']?.attributes?.temperature_unit ?? '°C';
+
+            const tempOk = temp && !['unavailable','unknown',''].includes(temp);
+            const humOk  = hum  && !['unavailable','unknown',''].includes(hum);
+
+            let sub = '';
+            if ('[[weather]]' !== 'false') {
+              const wx    = states['weather.forecast_home'];
+              const wTemp = wx?.attributes?.temperature;
+              const wState = (wx?.state ?? '').replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+              sub = `${Math.round(wTemp)}${unit} · ${wState}`;
+            } else if (tempOk || humOk) {
+              const parts = [];
+              if (tempOk) parts.push(`${parseFloat(temp).toFixed(1)}${unit}`);
+              if (humOk)  parts.push(`${parseFloat(hum).toFixed(1)}%`);
+              sub = parts.join(' / ');
+            }
+
+            return `
+              <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;">
+                <div style="font-size:16px;font-weight:600;color:rgba(255,255,255,0.92);letter-spacing:-0.02em;line-height:1.1;">[[name]]</div>
+                ${sub ? `<div style="font-size:11px;color:rgba(255,255,255,0.38);letter-spacing:0.01em;">${sub}</div>` : ''}
+              </div>
+            `;
+          ]]]
+
+        controls: |
+          [[[
+            const lightsId = '[[entity_id_lights]]';
+            const mediaId  = '[[entity_id_media_player]]';
+            const switchId = '[[entity_id_switch]]';
+
+            const hasLights = lightsId && lightsId.trim() !== '' && states[lightsId];
+            const hasMedia  = mediaId  && mediaId.trim()  !== '' && states[mediaId];
+            const hasSwitch = switchId && switchId.trim() !== '' && states[switchId];
+
+            const lightsOn  = states[lightsId]?.state === 'on';
+            const mediaPlay = states[mediaId]?.state === 'playing';
+            const switchOn  = states[switchId]?.state === 'on';
+
+            const chip = (active, color, icon) => `
+              <div style="
+                width:28px;height:28px;border-radius:50%;
+                background:${active ? `rgba(${color},0.18)` : 'rgba(255,255,255,0.04)'};
+                border:1px solid ${active ? `rgba(${color},0.45)` : 'rgba(255,255,255,0.09)'};
+                display:flex;align-items:center;justify-content:center;
+                box-shadow:${active ? `0 0 9px rgba(${color},0.4)` : 'none'};
+              ">
+                <ha-icon icon="${icon}" style="--mdc-icon-size:14px;color:${active ? `rgb(${color})` : 'rgba(255,255,255,0.25)'};"></ha-icon>
+              </div>
+            `;
+
+            return `
+              <div style="display:flex;flex-direction:column;gap:7px;align-items:center;">
+                ${hasLights ? chip(lightsOn,  '255,181,71',  '[[lights_icon]]')  : ''}
+                ${hasMedia  ? chip(mediaPlay, '91,225,166',  'mdi:television')   : ''}
+                ${hasSwitch ? chip(switchOn,  '122,167,255', '[[switch_icon]]')  : ''}
+              </div>
+            `;
+          ]]]
+
+        bottom_bar: |
+          [[[
+            const motionId = '[[entity_id_motion]]';
+            const hasMotion = motionId && motionId.trim() !== '' && states[motionId];
+
+            if (!hasMotion) return '';
+
+            const occupied = states[motionId].state === 'on';
+            const color    = occupied ? '#FF5E7A' : '#5BE1A6';
+            const label    = occupied ? 'Occupied' : 'Clear';
+
+            const diffMs   = Date.now() - new Date(states[motionId].last_updated).getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHrs  = Math.floor(diffMins / 60);
+            const since    = diffMins < 1 ? 'just now'
+                           : diffMins < 60 ? diffMins + 'm ago'
+                           : diffHrs < 24  ? diffHrs + 'h ago'
+                           : Math.floor(diffHrs / 24) + 'd ago';
+
+            return `
+              <div style="display:flex;align-items:center;gap:5px;width:100%;">
+                <div style="width:5px;height:5px;border-radius:50%;background:${color};${occupied ? `box-shadow:0 0 5px ${color};` : ''}"></div>
+                <span style="font-size:10px;font-weight:700;color:${color};letter-spacing:0.06em;text-transform:uppercase;">${label}</span>
+                <span style="font-size:10px;color:rgba(255,255,255,0.28);">· ${since}</span>
+              </div>
+            `;
+          ]]]
+
+      styles:
+        card:
+          - position: relative
+          - height: 150px
+          - border-radius: 22px
+          - overflow: hidden
+          - padding: 14px 16px 12px
+          - display: flex
+          - flex-direction: column
+          - justify-content: space-between
+          - transition: background 320ms ease, border-color 320ms ease, box-shadow 320ms ease
+          # Active-room tint. The same lookup runs in all three properties below;
+          # it returns null when the room is idle, which yields the neutral glass.
+          - background: |
+              [[[
+                const on = (id, want = 'on') => states[id] && states[id].state === want;
+                const c = on('[[entity_id_lights]]')                 ? '255,181,71'
+                        : on('[[entity_id_media_player]]','playing') ? '91,225,166'
+                        : on('[[entity_id_switch]]')                 ? '122,167,255'
+                        : null;
+                const base = 'linear-gradient(135deg, #141820 0%, #0f1117 100%)';
+                return c
+                  ? `radial-gradient(ellipse at 85% 15%, rgba(${c},0.13) 0%, transparent 60%), ${base}`
+                  : base;
+              ]]]
+          - border: |
+              [[[
+                const on = (id, want = 'on') => states[id] && states[id].state === want;
+                const c = on('[[entity_id_lights]]')                 ? '255,181,71'
+                        : on('[[entity_id_media_player]]','playing') ? '91,225,166'
+                        : on('[[entity_id_switch]]')                 ? '122,167,255'
+                        : null;
+                return `1px solid rgba(${c ?? '255,255,255'},${c ? 0.2 : 0.07}) !important`;
+              ]]]
+          - box-shadow: |
+              [[[
+                const on = (id, want = 'on') => states[id] && states[id].state === want;
+                const c = on('[[entity_id_lights]]')                 ? '255,181,71'
+                        : on('[[entity_id_media_player]]','playing') ? '91,225,166'
+                        : on('[[entity_id_switch]]')                 ? '122,167,255'
+                        : null;
+                const inner = 'inset 0 1px 0 rgba(255,255,255,0.06)';
+                return c ? `0 0 22px rgba(${c},0.12), ${inner}` : inner;
+              ]]]
+        custom_fields:
+          top_left:
+            - position: absolute
+            - top: 14px
+            - left: 16px
+            - right: 58px
+            - z-index: 2
+            - text-align: left
+          controls:
+            - position: absolute
+            - top: 12px
+            - bottom: 12px
+            - right: 14px
+            - z-index: 2
+            - display: flex
+            - align-items: center
+            - justify-content: flex-start
+            - overflow: visible
+          bottom_bar:
+            - position: absolute
+            - bottom: 12px
+            - left: 16px
+            - right: 58px
+            - z-index: 2
+            - text-align: left
+
+
+# --- Usage ------------------------------------------------------------------
+#
+# One instance per room. Only `name` is really required; add whichever entities
+# that room actually has.
+#
+#   - type: custom:streamline-card
+#     template: room_card
+#     variables:
+#       name: <Room>
+#       navigation_path: /<dashboard>/<room>
+#       entity_id_temperature: sensor.<room>_temperature
+#       entity_id_humidity: sensor.<room>_humidity
+#       entity_id_lights: light.<room>_lights
+#       lights_icon: mdi:lightbulb-group-outline
+#       entity_id_media_player: media_player.<room>_tv
+#       entity_id_motion: binary_sensor.<room>_motion
+#       entity_id_switch: switch.<room>_desk
+#       switch_icon: mdi:desktop-tower
+#
+# A room with nothing but a lamp is just as valid:
+#
+#   - type: custom:streamline-card
+#     template: room_card
+#     variables:
+#       name: <Room>
+#       navigation_path: /<dashboard>/<room>
+#       entity_id_lights: switch.<room>_lamp
+#       lights_icon: mdi:desk-lamp-on
+#
+# And one tile showing outdoor conditions instead of room sensors:
+#
+#   - type: custom:streamline-card
+#     template: room_card
+#     variables:
+#       name: Outside
+#       weather: "true"
+#
+# They pair well two-up in a horizontal-stack.

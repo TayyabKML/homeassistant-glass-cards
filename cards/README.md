@@ -5,6 +5,7 @@ setup and the things that will trip you up.
 
 | Card | What it does |
 |---|---|
+| [`room-card`](room-card/) | Per-room overview tile: climate, status chips, occupancy, tap-through |
 | [`network-switch`](network-switch/) | Per-port status table for a managed switch, with a live up-count |
 | [`camera-snapshot`](camera-snapshot/) | Detection snapshots with an age badge and freshness-reactive border |
 | [`bambu-printer`](bambu-printer/) | 3D printer status: SVG progress ring, remaining time, chamber light, pause/resume |
