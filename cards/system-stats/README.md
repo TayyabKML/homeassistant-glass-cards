@@ -3,6 +3,8 @@
 Host health for the Home Assistant machine: six stat tiles over two 24-hour load graphs,
 in a single glass shell.
 
+![The system stats card: disk free, CPU temperature, uptime, last backup, pending updates and unavailable entity count, above CPU and RAM load graphs](screenshot.png)
+
 The unavailable-entity count is the one nobody thinks to add. It's an early warning that
 something has silently dropped off — a Zigbee device with a flat battery, an integration
 that failed to reload after a restart.
