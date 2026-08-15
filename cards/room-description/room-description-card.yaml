@@ -1,0 +1,183 @@
+# Streamline template — a room status bar.
+#
+# A compact row of pills for a single room: occupancy, how long since it last
+# changed, and the current temperature. Transparent and unpadded, because it is
+# designed to sit in a view's `badges:` slot rather than in the card grid.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   room_temperature_sensor — temperature sensor for the room
+#   room_motion_sensor      — motion or presence binary_sensor (optional)
+#
+# Leave `room_motion_sensor` blank and the occupancy pill and timestamp are not
+# drawn at all — you get just the temperature pill, correctly spaced.
+#
+# Both variables are declared with entity `selector:` blocks, so Streamline's
+# visual editor offers filtered entity pickers instead of free-text fields.
+#
+# CHECK THIS ONE: the temperature unit is read from `weather.forecast_home`,
+# the entity Home Assistant creates when you accept the default Met.no
+# integration during onboarding. Change it below if yours is named differently
+# — it falls back to °C when the entity is missing.
+
+streamline_templates:
+  room_description_card:
+    default:
+      - room_temperature_sensor: ""
+      - room_motion_sensor: ""
+    variables:
+      - name: room_temperature_sensor
+        selector:
+          entity:
+            domain: sensor
+      - name: room_motion_sensor
+        selector:
+          entity:
+            domain: binary_sensor
+    card:
+      type: custom:button-card
+      entity: "[[room_motion_sensor]]"
+      show_name: false
+      show_icon: false
+      show_state: false
+      tap_action:
+        action: more-info
+        entity: "[[room_motion_sensor]]"
+      custom_fields:
+        status_bar: |
+          [[[
+            const motionEntityId = '[[room_motion_sensor]]';
+            const hasMotion = motionEntityId && motionEntityId.trim() !== '' && states[motionEntityId];
+
+            const temp = parseFloat(states['[[room_temperature_sensor]]']?.state ?? '—');
+            const unit = states['weather.forecast_home']?.attributes?.temperature_unit ?? '°C';
+
+            // Motion / occupancy block
+            let occupancyHtml = '';
+            let sinceHtml = '';
+
+            if (hasMotion) {
+              const motion = states[motionEntityId].state === 'on';
+
+              const lastUpdated = new Date(states[motionEntityId].last_updated);
+              const diffMs = Date.now() - lastUpdated.getTime();
+              const diffMins = Math.floor(diffMs / 60000);
+              const diffHrs = Math.floor(diffMins / 60);
+              let since;
+              if (diffMins < 1) since = 'just now';
+              else if (diffMins < 60) since = diffMins + 'm ago';
+              else if (diffHrs < 24) since = diffHrs + 'h ago';
+              else since = Math.floor(diffHrs / 24) + 'd ago';
+
+              const occupancyColor = motion ? '#FF5E7A' : '#5BE1A6';
+              const occupancyBg = motion ? 'rgba(255,94,122,0.12)' : 'rgba(91,225,166,0.10)';
+              const occupancyLabel = motion ? 'Occupied' : 'Clear';
+              const motionIcon = motion ? 'mdi:motion-sensor' : 'mdi:motion-sensor-off';
+
+              occupancyHtml = `
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                  background: ${occupancyBg};
+                  border: 1px solid ${occupancyColor}33;
+                  border-radius: 20px;
+                  padding: 4px 10px 4px 8px;
+                ">
+                  <ha-icon
+                    icon="${motionIcon}"
+                    style="--mdc-icon-size: 14px; color: ${occupancyColor};"
+                  ></ha-icon>
+                  <span style="
+                    font-size: 0.78em;
+                    font-weight: 700;
+                    letter-spacing: 0.04em;
+                    text-transform: uppercase;
+                    color: ${occupancyColor};
+                  ">${occupancyLabel}</span>
+                </div>
+              `;
+
+              sinceHtml = `
+                <span style="
+                  font-size: 0.75em;
+                  color: rgba(255,255,255,0.35);
+                  letter-spacing: 0.02em;
+                ">${since}</span>
+
+                <div style="
+                  width: 1px;
+                  height: 16px;
+                  background: rgba(255,255,255,0.1);
+                  margin: 0 2px;
+                "></div>
+              `;
+            }
+
+            return `
+              <div style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 6px 2px;
+              ">
+                ${occupancyHtml}
+                ${sinceHtml}
+
+                <!-- Temperature pill -->
+                <div style="
+                  display: flex;
+                  align-items: center;
+                  gap: 5px;
+                  background: rgba(122,167,255,0.10);
+                  border: 1px solid rgba(122,167,255,0.2);
+                  border-radius: 20px;
+                  padding: 4px 10px 4px 8px;
+                ">
+                  <ha-icon
+                    icon="mdi:thermometer"
+                    style="--mdc-icon-size: 14px; color: #7AA7FF;"
+                  ></ha-icon>
+                  <span style="
+                    font-size: 0.78em;
+                    font-weight: 700;
+                    color: #7AA7FF;
+                    letter-spacing: 0.02em;
+                  ">${isNaN(temp) ? '—' : temp}${unit}</span>
+                </div>
+              </div>
+            `;
+          ]]]
+      styles:
+        card:
+          - background: transparent
+          - box-shadow: none
+          - border: none
+          - padding: 0
+        custom_fields:
+          status_bar:
+            - width: 100%
+
+
+# --- Usage ------------------------------------------------------------------
+#
+# Goes in a sections view's `badges:` list, next to the view title:
+#
+#   badges:
+#     - type: custom:streamline-card
+#       template: room_description_card
+#       variables:
+#         room_temperature_sensor: sensor.<room>_temperature
+#         room_motion_sensor: binary_sensor.<room>_motion
+#
+# A room with no motion sensor just omits it:
+#
+#   badges:
+#     - type: custom:streamline-card
+#       template: room_description_card
+#       variables:
+#         room_temperature_sensor: sensor.<room>_temperature
+#
+# It works as an ordinary card too, but it draws no background of its own, so
+# put it inside something that does.
