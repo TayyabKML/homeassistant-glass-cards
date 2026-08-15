@@ -3,6 +3,10 @@
 A compact row of pills for a single room: occupancy, how long since it last changed, and
 the current temperature.
 
+![Occupied state: a red OCCUPIED pill with a motion icon, 1h ago, and a blue 24°C temperature pill](screenshot-occupied.png)
+
+![Clear state: a green CLEAR pill with a motion-off icon, 11m ago, and a blue 23.8°C temperature pill](screenshot-clear.png)
+
 It's the companion to [`room-card`](../room-card/). That tile is the room seen from the
 overview; this is the header of the room's own view once you've tapped through.
 
