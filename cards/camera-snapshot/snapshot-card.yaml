@@ -1,0 +1,112 @@
+# Streamline template — camera snapshot with a freshness badge.
+#
+# There are no entity IDs in this file: the image entity arrives as a variable,
+# so the template body needs no edits.
+#
+# Paste under `streamline_templates:` in your dashboard's raw config editor.
+#
+# Variables:
+#   entity — the image entity holding the snapshot
+#   name   — caption text, rendered in picture-entity's own footer
+#
+# What it does beyond showing the picture:
+#   · a corner badge counts the age of the snapshot — NOW under a minute,
+#     then Nm / Nh / Nd
+#   · under 5 minutes old the card gets a green border and glow
+#   · over an hour it dims, and over a day it goes greyscale
+#
+# Deliberately NO aspect_ratio. Detection snapshots are cropped to the object
+# and are often taller than wide; forcing 16:9 with fit_mode: cover crops the
+# subject straight out of frame.
+
+streamline_templates:
+  camera_snapshot_card:
+    default:
+      - entity: ""
+      - name: "Snapshot"
+    variables:
+      - entity
+      - name
+    card:
+      type: picture-entity
+      entity: "[[entity]]"
+      camera_view: auto
+      show_state: false
+      show_name: true
+      fit_mode: cover
+      name: "[[name]]"
+      card_mod:
+        style: |
+          {% set s = states['[[entity]]'] %}
+          {% set age = (now() - s.last_changed).total_seconds() if s else 9999999 %}
+          {% set fresh = age < 300 %}
+          {% set stale = age > 86400 %}
+
+          ha-card {
+            border-radius: 16px !important;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid {% if fresh %}rgba(0,221,184,0.40){% else %}rgba(255,255,255,0.08){% endif %} !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35){% if fresh %}, 0 0 20px rgba(0,221,184,0.18){% endif %} !important;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+          }
+
+          ha-card hui-image, ha-card img {
+            filter: {% if stale %}grayscale(0.6) opacity(0.5){% elif age > 3600 %}opacity(0.85){% else %}none{% endif %};
+            transition: filter 0.4s ease;
+          }
+
+          ha-card::after {
+            content: "{% if not s %}—{% elif age < 60 %}NOW{% elif age < 3600 %}{{ (age / 60) | int }}m{% elif age < 86400 %}{{ (age / 3600) | int }}h{% else %}{{ (age / 86400) | int }}d{% endif %}";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 10;
+            padding: 3px 7px;
+            border-radius: 9px;
+            line-height: 1;
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 9.5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.10);
+            color: {% if fresh %}#00DDB8{% elif stale %}rgba(255,255,255,0.35){% else %}rgba(255,255,255,0.75){% endif %};
+          }
+
+          ha-card .footer,
+          ha-card .caption {
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            background: rgba(0,0,0,0.35) !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.3px;
+            padding: 7px 10px !important;
+          }
+
+# --- Usage ------------------------------------------------------------------
+#
+# One instance per camera/object pair. Frigate names these entities
+# image.<camera>_<object> — the camera name as configured in Frigate, then the
+# tracked object type.
+#
+# REPLACE <camera> and <object> below. The template body needs no edits.
+#
+#   - type: custom:streamline-card
+#     template: camera_snapshot_card
+#     variables:
+#       entity: image.<camera>_person
+#       name: <Camera> • Person
+#
+#   - type: custom:streamline-card
+#     template: camera_snapshot_card
+#     variables:
+#       entity: image.<camera>_car
+#       name: <Camera> • Car
+#
+# Add as many as you have camera/object pairs — four cameras tracking people and
+# cars is eight cards. They work well in a grid; the card sizes itself to
+# whatever column width you give it.
