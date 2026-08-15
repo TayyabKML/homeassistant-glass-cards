@@ -1,15 +1,20 @@
-# Home Assistant — Reusable Cards & Tooling
+# Glassmorphic Lovelace Cards for Home Assistant
 
-A collection of reusable Lovelace card templates, Jinja templates and helper tooling
-extracted from my Home Assistant setup.
+A set of reusable Lovelace dashboard cards built with `card-mod`, `mushroom` and
+`streamline-card` — translucent glass surfaces, heavy backdrop blur, per-room accent
+colours and state-reactive glows.
 
-This is deliberately **not** a config dump. There are no entity IDs from my house, no
-secrets, no automations and no floor plan — just the parts that are genuinely reusable,
-parameterised so you can point them at your own entities.
+![placeholder — drop a dashboard screenshot here as docs/images/dashboard.png]
 
-Everything here targets a dark, glassmorphic dashboard: translucent surfaces, heavy
-backdrop blur, per-room accent colours and state-reactive glows. The shared design tokens
-live in [`theme/`](theme/) so cards stay visually consistent.
+Every card is parameterised. Point it at your own entities and it works; there are no
+entity IDs from my house baked in, and each card's README lists exactly which values you
+need to change.
+
+This is deliberately **not** a config dump — no automations, no floor plan, no entity
+registry. Just the parts that are genuinely reusable.
+
+The shared design tokens live in [`theme/`](theme/), which is what keeps the cards looking
+like one system rather than eight unrelated boxes.
 
 ## What's in here
 
@@ -29,17 +34,22 @@ live in [`theme/`](theme/) so cards stay visually consistent.
 
 ## Requirements
 
-Most cards depend on custom components installed via [HACS](https://hacs.xyz/):
+All installed via [HACS](https://hacs.xyz/):
 
-- [`card-mod`](https://github.com/thomasloven/lovelace-card-mod) — CSS injection, used everywhere
-- [`button-card`](https://github.com/custom-cards/button-card)
-- [`mushroom`](https://github.com/piitaya/lovelace-mushroom)
-- [`bubble-card`](https://github.com/Clooos/Bubble-Card)
-- [`streamline-card`](https://github.com/brunosabot/streamline-card) — card templating
-- [`stack-in-card`](https://github.com/custom-cards/stack-in-card)
-- [`mini-graph-card`](https://github.com/kalkih/mini-graph-card)
+| Component | Needed for |
+|---|---|
+| [`card-mod`](https://github.com/thomasloven/lovelace-card-mod) | The glass treatment. Used by every card here. |
+| [`streamline-card`](https://github.com/brunosabot/streamline-card) | Card templating — define once, instantiate many |
+| [`mushroom`](https://github.com/piitaya/lovelace-mushroom) | Most cards |
+| [`button-card`](https://github.com/custom-cards/button-card) | Room card, printer card |
+| [`stack-in-card`](https://github.com/custom-cards/stack-in-card) | Network switch, system stats |
+| [`mini-graph-card`](https://github.com/kalkih/mini-graph-card) | System stats graphs |
 
-Each card's README lists the specific subset it needs.
+Each card's README lists the specific subset it needs — nothing requires all six.
+
+Note the cards in [`cards/bubble-cards`](cards/bubble-cards/) are named for their shape,
+not for the [Bubble Card](https://github.com/Clooos/Bubble-Card) component. They're built
+on mushroom, and you don't need Bubble Card installed.
 
 ## How to use these
 
@@ -50,20 +60,26 @@ different variables:
 
 ```yaml
 streamline_templates:
-  port_card:
+  room_card:
     card:
-      type: custom:mushroom-template-card
-      # ... template body, using [[variables]]
+      type: custom:button-card
+      # ... template body, referring to [[variables]]
 
 views:
   - cards:
       - type: custom:streamline-card
-        template: port_card
+        template: room_card
         variables:
-          port: 1
+          name: Kitchen
+          entity_id_temperature: sensor.kitchen_temperature
+          entity_id_lights: light.kitchen_lights
 ```
 
-Where a card isn't repeated, it's given as a plain manual card you can paste directly.
+Where a card isn't repeated, it's a plain manual card you can paste straight into a view.
+
+Placeholders you need to replace are written in angle brackets — `sensor.<switch>_port_1_status`
+— and every card README has a **Replace these** table listing them. A card with no
+placeholders says so.
 
 ## Licence
 

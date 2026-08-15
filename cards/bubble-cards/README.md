@@ -16,6 +16,10 @@ components that happen to sit together.
 Take all four or just the one you need — they're independent files with no shared
 dependency beyond the design tokens in [`theme/`](../../theme/).
 
+"Bubble" describes the shape, not the component. These are built on
+[mushroom](https://github.com/piitaya/lovelace-mushroom); you do **not** need the
+[Bubble Card](https://github.com/Clooos/Bubble-Card) integration installed.
+
 ## Replace these
 
 **Nothing.** Every entity arrives as a variable, so there's nothing in any of the four
