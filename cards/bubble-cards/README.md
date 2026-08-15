@@ -4,8 +4,6 @@ Four entity cards — light, switch, media player, climate — sharing one glass
 consistent variable set, so a view built from them reads as one system rather than four
 components that happen to sit together.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 | File | Card type | Accent |
 |---|---|---|
 | `light-bubble-card.yaml` | `mushroom-light-card` | Amber, reactive |

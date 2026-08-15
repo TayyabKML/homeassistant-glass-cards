@@ -4,8 +4,6 @@ A "last done / days since" card for recurring household jobs. Tap it to stamp th
 done today; the border and glow shift from green through amber to red as the task comes
 due.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 ## How it works
 
 Three pieces per task:

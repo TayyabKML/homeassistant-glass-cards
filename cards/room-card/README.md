@@ -4,8 +4,6 @@ A 150px overview tile per room: name, temperature and humidity, a column of stat
 for lights, media and a switch, and an occupancy bar along the bottom. The whole tile
 tints and glows in the colour of whatever's active, and taps through to that room's view.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 Two-up in a `horizontal-stack` is the layout it's designed for.
 
 ## The thing that makes it worth using

@@ -4,8 +4,6 @@ Printer status: a circular progress ring, remaining time, nozzle/bed/layer chips
 sliced file name, a cover-image thumbnail, and a chips row for the chamber light and
 pause/resume.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 Built for a P1S, but nothing here is P1S-specific beyond the header text — any printer
 integration exposing the same entities will work with the prefix swapped.
 

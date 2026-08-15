@@ -3,8 +3,6 @@
 A Streamline template for detection snapshot images, with a corner badge showing how long
 ago the detection fired and a border that reacts to how fresh it is.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 ## What it does
 
 - A badge in the top-right corner counts the age of the snapshot: `NOW` under a minute,

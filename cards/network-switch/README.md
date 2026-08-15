@@ -7,8 +7,6 @@ count sits in the header.
 Sixteen ports in a single glass shell at 50px per row. Readable at a glance, and short
 enough not to dominate a view.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 ## Files
 
 | File | What it is |

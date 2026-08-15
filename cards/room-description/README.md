@@ -3,8 +3,6 @@
 A compact row of pills for a single room: occupancy, how long since it last changed, and
 the current temperature.
 
-![placeholder — drop a screenshot here as screenshot.png]
-
 It's the companion to [`room-card`](../room-card/). That tile is the room seen from the
 overview; this is the header of the room's own view once you've tapped through.
 

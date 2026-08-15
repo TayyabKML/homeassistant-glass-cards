@@ -4,8 +4,6 @@ A set of reusable Lovelace dashboard cards built with `card-mod`, `mushroom` and
 `streamline-card` — translucent glass surfaces, heavy backdrop blur, per-room accent
 colours and state-reactive glows.
 
-![placeholder — drop a dashboard screenshot here as docs/images/dashboard.png]
-
 Every card is parameterised. Point it at your own entities and it works; there are no
 entity IDs from my house baked in, and each card's README lists exactly which values you
 need to change.
